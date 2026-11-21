@@ -1,10 +1,15 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { connection } from "next/server";
 import type { Database } from "@/types/database";
 
 // Supabase client for Server Components, Server Actions and Route Handlers.
 // Acts as the signed-in couple (or anonymous), so RLS still applies.
 export async function createClient() {
+  // supabase-js reads Date.now() for session-expiry checks, which Next forbids
+  // while prerendering (cookies can be available during runtime prefetch).
+  // connection() defers everything after it to request time.
+  await connection();
   const cookieStore = await cookies();
 
   return createServerClient<Database>(
